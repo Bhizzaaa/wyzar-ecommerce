@@ -13,15 +13,15 @@ const generateOTP = () => {
 
 /**
  * Create and save OTP to database
- * @param {string} phone - Phone number
+ * @param {string} email - Email address
  * @param {string} type - OTP type (registration, login, password-reset)
  * @returns {Promise<Object>} - { otp, otpId }
  */
-const createOTP = async (phone, type = 'registration') => {
+const createOTP = async (email, type = 'registration') => {
   try {
-    // Delete any existing unverified OTPs for this phone and type
+    // Delete any existing unverified OTPs for this email and type
     await OTP.deleteMany({
-      phone,
+      email,
       type,
       verified: false
     });
@@ -31,7 +31,7 @@ const createOTP = async (phone, type = 'registration') => {
 
     // Create new OTP document
     const newOTP = new OTP({
-      phone,
+      email,
       otp: otpCode,
       type,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
@@ -55,16 +55,16 @@ const createOTP = async (phone, type = 'registration') => {
 
 /**
  * Verify OTP
- * @param {string} phone - Phone number
+ * @param {string} email - Email address
  * @param {string} otpCode - OTP code to verify
  * @param {string} type - OTP type
  * @returns {Promise<Object>} - { success, message }
  */
-const verifyOTP = async (phone, otpCode, type = 'registration') => {
+const verifyOTP = async (email, otpCode, type = 'registration') => {
   try {
-    // Find the most recent OTP for this phone and type
+    // Find the most recent OTP for this email and type
     const otpRecord = await OTP.findOne({
-      phone,
+      email,
       type,
       verified: false
     }).sort({ createdAt: -1 });
@@ -125,15 +125,15 @@ const verifyOTP = async (phone, otpCode, type = 'registration') => {
 
 /**
  * Check if user can request new OTP (rate limiting)
- * @param {string} phone - Phone number
+ * @param {string} email - Email address
  * @param {string} type - OTP type
  * @returns {Promise<Object>} - { canRequest, waitTime }
  */
-const canRequestOTP = async (phone, type = 'registration') => {
+const canRequestOTP = async (email, type = 'registration') => {
   try {
-    // Find the most recent OTP for this phone
+    // Find the most recent OTP for this email
     const recentOTP = await OTP.findOne({
-      phone,
+      email,
       type
     }).sort({ createdAt: -1 });
 
